@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios?nombre=Juan"
+method: GET
+queryParams:
+  nombre: Juan
+order: 2000

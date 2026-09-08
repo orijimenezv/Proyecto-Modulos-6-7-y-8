@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios"
+method: GET
+order: 1000

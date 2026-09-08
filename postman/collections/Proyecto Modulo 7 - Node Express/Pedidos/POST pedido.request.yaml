@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/api/pedidos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "usuarioId": 1,
+      "producto": "Monitor",
+      "cantidad": 1,
+      "total": 89990,
+      "estado": "pendiente"
+    }
+order: 2000

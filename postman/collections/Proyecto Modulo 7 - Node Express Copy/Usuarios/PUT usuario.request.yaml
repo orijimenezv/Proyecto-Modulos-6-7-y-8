@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios/1"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "nombre": "Maria Lopez Actualizada"
+    }
+order: 6000

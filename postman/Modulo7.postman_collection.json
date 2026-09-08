@@ -1,0 +1,90 @@
+{
+  "info": {
+    "name": "Proyecto Modulo 7 - Node Express",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ],
+  "item": [
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "GET usuarios",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/usuarios", "host": ["{{baseUrl}}"], "path": ["api", "usuarios"] } }
+        },
+        {
+          "name": "GET usuarios filtro",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/usuarios?nombre=Juan", "host": ["{{baseUrl}}"], "path": ["api", "usuarios"], "query": [{"key":"nombre","value":"Juan"}] } }
+        },
+        {
+          "name": "GET usuarios SQL manual",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/usuarios/sql", "host": ["{{baseUrl}}"], "path": ["api", "usuarios", "sql"] } }
+        },
+        {
+          "name": "GET usuario detalles con pedidos",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/usuarios/1/detalles", "host": ["{{baseUrl}}"], "path": ["api", "usuarios", "1", "detalles"] } }
+        },
+        {
+          "name": "POST usuario",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n  \"nombre\": \"Maria Lopez\",\n  \"email\": \"maria@ejemplo.cl\",\n  \"password\": \"clave123\"\n}"},
+            "url": { "raw": "{{baseUrl}}/api/usuarios", "host": ["{{baseUrl}}"], "path": ["api", "usuarios"] }
+          }
+        },
+        {
+          "name": "PUT usuario",
+          "request": {
+            "method": "PUT",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n  \"nombre\": \"Maria Lopez Actualizada\"\n}"},
+            "url": { "raw": "{{baseUrl}}/api/usuarios/1", "host": ["{{baseUrl}}"], "path": ["api", "usuarios", "1"] }
+          }
+        },
+        {
+          "name": "DELETE usuario",
+          "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/api/usuarios/3", "host": ["{{baseUrl}}"], "path": ["api", "usuarios", "3"] } }
+        },
+        {
+          "name": "POST transaccion COMMIT",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n  \"usuario\": {\n    \"nombre\": \"Prueba Transaccion\",\n    \"email\": \"transaccion1@ejemplo.cl\",\n    \"password\": \"clave123\"\n  },\n  \"pedido\": {\n    \"producto\": \"Notebook\",\n    \"cantidad\": 1,\n    \"total\": 450000,\n    \"estado\": \"pendiente\"\n  },\n  \"forzarError\": false\n}"},
+            "url": { "raw": "{{baseUrl}}/api/usuarios/transaccion", "host": ["{{baseUrl}}"], "path": ["api", "usuarios", "transaccion"] }
+          }
+        },
+        {
+          "name": "POST transaccion ROLLBACK",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n  \"usuario\": {\n    \"nombre\": \"Prueba Rollback\",\n    \"email\": \"rollback@ejemplo.cl\",\n    \"password\": \"clave123\"\n  },\n  \"pedido\": {\n    \"producto\": \"Notebook\",\n    \"cantidad\": 1,\n    \"total\": 450000,\n    \"estado\": \"pendiente\"\n  },\n  \"forzarError\": true\n}"},
+            "url": { "raw": "{{baseUrl}}/api/usuarios/transaccion", "host": ["{{baseUrl}}"], "path": ["api", "usuarios", "transaccion"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "GET pedidos",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/pedidos", "host": ["{{baseUrl}}"], "path": ["api", "pedidos"] } }
+        },
+        {
+          "name": "POST pedido",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n  \"usuarioId\": 1,\n  \"producto\": \"Monitor\",\n  \"cantidad\": 1,\n  \"total\": 89990,\n  \"estado\": \"pendiente\"\n}"},
+            "url": { "raw": "{{baseUrl}}/api/pedidos", "host": ["{{baseUrl}}"], "path": ["api", "pedidos"] }
+          }
+        }
+      ]
+    }
+  ]
+}

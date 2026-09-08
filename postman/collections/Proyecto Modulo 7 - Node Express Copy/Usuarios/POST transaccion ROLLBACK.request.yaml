@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/usuarios/transaccion"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "usuario": {
+        "nombre": "Prueba Rollback",
+        "email": "rollback@ejemplo.cl",
+        "password": "clave123"
+      },
+      "pedido": {
+        "producto": "Notebook",
+        "cantidad": 1,
+        "total": 450000,
+        "estado": "pendiente"
+      },
+      "forzarError": true
+    }
+order: 9000
