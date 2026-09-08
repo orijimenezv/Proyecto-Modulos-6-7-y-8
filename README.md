@@ -1,156 +1,51 @@
-# Proyecto Módulo 7
+## Parte 1 - Módulo 6
 
-Proyecto realizado para el Módulo 7 del curso de Desarrollo de Aplicaciones Full Stack JavaScript.
+En esta parte del proyecto trabajé con Node.js y Express para crear la estructura inicial del servidor.
 
-En este proyecto trabajé con Node.js y PostgreSQL para conectar una aplicación con una base de datos y realizar operaciones para crear, consultar, actualizar y eliminar información.
+Se utilizó `index.js` como archivo principal porque permite iniciar el proyecto desde un punto de entrada simple y mantener el resto de la aplicación organizado dentro de la carpeta `src`.
 
-También utilicé Sequelize para trabajar con modelos y relaciones entre usuarios y pedidos.
-
-## Tecnologías utilizadas
-
-- Node.js
-- Express
-- PostgreSQL
-- Sequelize
-- pg
-- dotenv
-- bcryptjs
-- nodemon
-
-## Funcionalidades
-
-El proyecto permite:
-
-- crear usuarios
-- consultar usuarios
-- actualizar usuarios
-- eliminar usuarios
-- crear pedidos
-- consultar pedidos
-- relacionar usuarios con pedidos
-- consultar un usuario junto con sus pedidos
-- realizar consultas usando SQL
-- realizar consultas usando Sequelize
-- utilizar transacciones con commit y rollback
-- validar datos ingresados
-- manejar errores
-
-## Base de datos
-
-Para este proyecto utilicé PostgreSQL.
-
-La base de datos utilizada se llama:
-
-`bootcamp_m7`
-
-El proyecto trabaja principalmente con dos tablas:
-
-- usuarios
-- pedidos
-
-Un usuario puede tener varios pedidos.
-
-## Instalación
-
-Primero se deben instalar las dependencias:
+El proyecto puede ejecutarse con:
 
 ```bash
-npm install
+npm start
 ```
 
-Luego se debe crear un archivo `.env` tomando como ejemplo el archivo `.env.example`.
-
-Ejemplo:
-
-```env
-PORT=3000
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=bootcamp_m7
-DB_USER=postgres
-DB_PASSWORD=tu_password
-```
-
-## Datos de prueba
-
-Para crear los datos iniciales se puede ejecutar:
-
-```bash
-npm run seed
-```
-
-Esto crea usuarios y pedidos de prueba en la base de datos.
-
-## Ejecutar el proyecto
-
-Para iniciar el servidor:
+Durante el desarrollo también se puede utilizar:
 
 ```bash
 npm run dev
 ```
 
-El servidor se ejecuta en:
+También se puede iniciar directamente con:
 
-`http://localhost:3000`
+```bash
+node index.js
+```
 
-## Rutas utilizadas
+### Rutas del Módulo 6
 
-### Usuarios
+Ruta principal con respuesta HTML:
 
-Consultar usuarios:
+`GET /`
 
-`GET /api/usuarios`
+Ruta que muestra el estado del servidor en formato JSON:
 
-Crear usuario:
+`GET /status`
 
-`POST /api/usuarios`
+Archivo estático:
 
-Actualizar usuario:
+`GET /public/info.html`
 
-`PUT /api/usuarios/:id`
+### Archivos estáticos
 
-Eliminar usuario:
+La carpeta `public` se utiliza para guardar archivos que pueden ser vistos directamente desde el navegador.
 
-`DELETE /api/usuarios/:id`
+Express utiliza `express.static()` para permitir el acceso a estos archivos.
 
-Consultar usuarios usando SQL:
+### Registro de accesos
 
-`GET /api/usuarios/sql`
+El proyecto incluye la carpeta `logs` con el archivo `log.txt`.
 
-Consultar un usuario junto con sus pedidos:
+Cada vez que se accede a una ruta se registra la fecha la hora y la ruta visitada utilizando el módulo `fs` de Node.js.
 
-`GET /api/usuarios/:id/detalles`
-
-### Transacciones
-
-Para probar una transacción:
-
-`POST /api/usuarios/transaccion`
-
-La transacción permite crear un usuario y un pedido.
-
-También se puede provocar un error para comprobar que rollback deshaga los cambios.
-
-### Pedidos
-
-Consultar pedidos:
-
-`GET /api/pedidos`
-
-Crear pedido:
-
-`POST /api/pedidos`
-
-## Pruebas realizadas
-
-Las rutas fueron probadas utilizando Postman.
-
-También utilicé pgAdmin para revisar las tablas y comprobar que los registros quedaran guardados en PostgreSQL.
-
-Las capturas de las pruebas se encuentran en la carpeta `evidencias`.
-
-## Lo aprendido
-
-Con este proyecto pude practicar la conexión entre Node.js y PostgreSQL y realizar operaciones CRUD.
-
-También aprendí a utilizar Sequelize para trabajar con modelos y relaciones entre tablas y a utilizar transacciones para confirmar o deshacer cambios cuando ocurre un error.
+La estructura del proyecto está separada en carpetas como `routes`, `controllers`, `middlewares`, `services`, `public` y `logs` para mantener el código organizado.
