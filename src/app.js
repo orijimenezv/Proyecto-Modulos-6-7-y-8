@@ -5,6 +5,8 @@ const usuarioRoutes = require('./routes/usuarioRoutes');
 const pedidoRoutes = require('./routes/pedidoRoutes');
 const requestLogger = require('./middlewares/requestLogger');
 const errorHandler = require('./middlewares/errorHandler');
+const authRoutes = require('./routes/authRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 const app = express();
 
@@ -43,6 +45,8 @@ app.get('/health', (req, res) => {
 });
 
 // Rutas del Módulo 7
+app.use('/', authRoutes);
+app.use('/', uploadRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/pedidos', pedidoRoutes);
 
