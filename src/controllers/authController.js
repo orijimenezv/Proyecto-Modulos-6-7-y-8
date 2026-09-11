@@ -1,67 +1,19 @@
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { Usuario } = require('../models');
-
+const validation = require('../utils/validation');
+const tokens = require('../utils/tokens');
+const AppError = require('../utils/AppError');
+// Comparación sintética para mantener el coste incluso cuando no existe la cuenta.
+const dummyHash = bcrypt.hashSync(require('crypto').randomBytes(32).toString('hex'), 10);
 async function login(req, res, next) {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Email y contraseña son obligatorios',
-        data: null
-      });
-    }
-
-    const usuario = await Usuario.scope('conPassword').findOne({
-      where: { email }
-    });
-
-    if (!usuario) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Credenciales incorrectas',
-        data: null
-      });
-    }
-
-    const passwordValida = await bcrypt.compare(
-      password,
-      usuario.passwordHash
-    );
-
-    if (!passwordValida) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Credenciales incorrectas',
-        data: null
-      });
-    }
-
-    const token = jwt.sign(
-      {
-        id: usuario.id,
-        email: usuario.email
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: '1h'
-      }
-    );
-
-    res.json({
-      status: 'success',
-      message: 'Login correcto',
-      data: {
-        token
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
+    validation.keys(req.body, ['email', 'password']);
+    const email = validation.email(req.body.email);
+    const password = validation.password(req.body.password, true);
+    const usuario = await Usuario.scope('conPassword').findOne({ where: { email } });
+    const valid = await bcrypt.compare(password, usuario ? usuario.passwordHash : dummyHash);
+    if (!usuario || !valid) throw new AppError('Credenciales incorrectas', 401);
+    res.json({ status: 'success', message: 'Login correcto', data: { token: tokens.sign(usuario) } });
+  } catch (error) { next(error); }
 }
-
-module.exports = {
-  login
-};
+module.exports = { login };
