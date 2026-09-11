@@ -1,22 +1,7 @@
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
-
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT || 5432),
-    dialect: 'postgres',
-    logging: false,
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
-  }
-);
-
-module.exports = sequelize;
+const { loadConfig } = require('./env');
+const { database: db } = loadConfig();
+const options = { dialect: 'postgres', host: db.host, port: db.port, logging: false,
+  pool: { max: db.poolMax, min: 0, acquire: 10000, idle: 10000 },
+  dialectOptions: { ssl: db.ssl, connectionTimeoutMillis: 10000, statement_timeout: 10000 } };
+module.exports = db.url ? new Sequelize(db.url, options) : new Sequelize(db.name, db.user, db.password, options);
