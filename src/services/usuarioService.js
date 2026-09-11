@@ -1,65 +1,53 @@
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
-const { Usuario, Pedido } = require('../models');
+const { Usuario, Pedido, sequelize } = require('../models');
 const AppError = require('../utils/AppError');
 const sanitizeUser = require('../utils/sanitizeUser');
-
-async function listar({ nombre }) {
-  const where = {};
-  if (nombre) where.nombre = { [Op.iLike]: `%${nombre}%` };
-
-  return Usuario.findAll({ where, order: [['id', 'ASC']] });
+const v = require('../utils/validation');
+function owner(id, actorId) {
+  const value = v.id(id);
+  if (value !== actorId) throw new AppError('No tienes permiso sobre este recurso', 403);
+  return value;
 }
-
-async function obtenerPorId(id, incluirPedidos = false) {
+async function listar(query, actorId) {
+  const { nombre, limit, offset } = v.pagination(query);
+  const where = { id: v.id(actorId) };
+  if (nombre) where.nombre = { [Op.iLike]: '%' + nombre + '%' };
+  return Usuario.findAll({ where, limit, offset, order: [['id', 'ASC']] });
+}
+async function obtenerPorId(id, incluirPedidos, actorId) {
   const options = {};
-  if (incluirPedidos) {
-    options.include = [{ model: Pedido, as: 'pedidos' }];
-  }
-
-  const usuario = await Usuario.findByPk(id, options);
+  if (incluirPedidos) options.include = [{ model: Pedido, as: 'pedidos' }];
+  const usuario = await Usuario.findByPk(owner(id, actorId), options);
   if (!usuario) throw new AppError('Usuario no encontrado', 404);
   return usuario;
 }
-
-async function crear({ nombre, email, password }) {
-  if (!nombre || !email || !password) {
-    throw new AppError('nombre email y password son obligatorios', 400);
-  }
-  if (password.length < 6) {
-    throw new AppError('La contraseña debe tener al menos 6 caracteres', 400);
-  }
-
+async function crear(datos) {
+  const { nombre, email, password } = v.usuario(datos);
   const passwordHash = await bcrypt.hash(password, 10);
-  const creado = await Usuario.unscoped().create({ nombre, email, passwordHash });
-  return sanitizeUser(creado);
+  return sanitizeUser(await Usuario.unscoped().create({ nombre, email, passwordHash }));
 }
-
-async function actualizar(id, datos) {
-  const usuario = await Usuario.unscoped().findByPk(id);
+async function actualizar(id, datos, actorId) {
+  const userId = owner(id, actorId);
+  const cambios = v.usuario(datos, true);
+  const usuario = await Usuario.unscoped().findByPk(userId);
   if (!usuario) throw new AppError('Usuario no encontrado', 404);
-
-  const cambios = {};
-  if (datos.nombre !== undefined) cambios.nombre = datos.nombre;
-  if (datos.email !== undefined) cambios.email = datos.email;
-  if (datos.password !== undefined) {
-    if (datos.password.length < 6) throw new AppError('La contraseña debe tener al menos 6 caracteres', 400);
-    cambios.passwordHash = await bcrypt.hash(datos.password, 10);
+  if (cambios.password !== undefined) {
+    cambios.passwordHash = await bcrypt.hash(cambios.password, 10);
+    delete cambios.password;
   }
-
-  if (Object.keys(cambios).length === 0) {
-    throw new AppError('No hay campos válidos para actualizar', 400);
-  }
-
   await usuario.update(cambios);
   return sanitizeUser(usuario);
 }
-
-async function eliminar(id) {
-  const usuario = await Usuario.unscoped().findByPk(id);
-  if (!usuario) throw new AppError('Usuario no encontrado', 404);
-  await usuario.destroy();
-  return { id: Number(id) };
+async function eliminar(id, actorId) {
+  const userId = owner(id, actorId);
+  return sequelize.transaction(async transaction => {
+    const usuario = await Usuario.findByPk(userId, { transaction, lock: transaction.LOCK.UPDATE });
+    if (!usuario) throw new AppError('Usuario no encontrado', 404);
+    // Compatible también con esquemas anteriores; todas las eliminaciones son atómicas.
+    await Pedido.destroy({ where: { usuarioId: userId }, transaction });
+    await usuario.destroy({ transaction });
+    return { id: userId };
+  });
 }
-
 module.exports = { listar, obtenerPorId, crear, actualizar, eliminar };

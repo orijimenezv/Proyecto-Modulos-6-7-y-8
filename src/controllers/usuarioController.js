@@ -4,28 +4,28 @@ const transaccionService = require('../services/transaccionService');
 
 async function listar(req, res, next) {
   try {
-    const usuarios = await usuarioService.listar({ nombre: req.query.nombre });
+    const usuarios = await usuarioService.listar(req.query, req.usuario.id);
     res.json({ status: 'success', message: 'Usuarios obtenidos', data: usuarios });
   } catch (error) { next(error); }
 }
 
 async function listarSQL(req, res, next) {
   try {
-    const usuarios = await rawSqlService.listarUsuariosSQL(req.query.nombre);
+    const usuarios = await rawSqlService.listarUsuariosSQL(req.query, req.usuario.id);
     res.json({ status: 'success', message: 'Usuarios obtenidos con SQL manual', data: usuarios });
   } catch (error) { next(error); }
 }
 
 async function obtener(req, res, next) {
   try {
-    const usuario = await usuarioService.obtenerPorId(req.params.id);
+    const usuario = await usuarioService.obtenerPorId(req.params.id, false, req.usuario.id);
     res.json({ status: 'success', message: 'Usuario obtenido', data: usuario });
   } catch (error) { next(error); }
 }
 
 async function detalles(req, res, next) {
   try {
-    const usuario = await usuarioService.obtenerPorId(req.params.id, true);
+    const usuario = await usuarioService.obtenerPorId(req.params.id, true, req.usuario.id);
     res.json({ status: 'success', message: 'Usuario y pedidos obtenidos', data: usuario });
   } catch (error) { next(error); }
 }
@@ -39,14 +39,14 @@ async function crear(req, res, next) {
 
 async function actualizar(req, res, next) {
   try {
-    const usuario = await usuarioService.actualizar(req.params.id, req.body);
+    const usuario = await usuarioService.actualizar(req.params.id, req.body, req.usuario.id);
     res.json({ status: 'success', message: 'Usuario actualizado', data: usuario });
   } catch (error) { next(error); }
 }
 
 async function eliminar(req, res, next) {
   try {
-    const data = await usuarioService.eliminar(req.params.id);
+    const data = await usuarioService.eliminar(req.params.id, req.usuario.id);
     res.json({ status: 'success', message: 'Usuario eliminado y pedidos relacionados eliminados en cascada', data });
   } catch (error) { next(error); }
 }

@@ -4,15 +4,15 @@ const Pedido = require('./Pedido');
 
 // Relación 1:N: un usuario puede tener muchos pedidos.
 Usuario.hasMany(Pedido, {
-  foreignKey: 'usuarioId',
+  foreignKey: { name: 'usuarioId', allowNull: false },
   as: 'pedidos',
   onDelete: 'CASCADE',
-  hooks: true,
 });
 
 Pedido.belongsTo(Usuario, {
-  foreignKey: 'usuarioId',
+  foreignKey: { name: 'usuarioId', allowNull: false },
   as: 'usuario',
+  onDelete: 'CASCADE',
 });
 
 module.exports = { sequelize, Usuario, Pedido };

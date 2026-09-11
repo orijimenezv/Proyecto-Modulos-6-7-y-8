@@ -1,33 +1,21 @@
-require('dotenv').config();
-const bcrypt = require('bcryptjs');
-const { sequelize, Usuario, Pedido } = require('./models');
-
+// Datos sintéticos opcionales. Nunca crea, sincroniza, borra ni recrea tablas.
+const { loadConfig } = require('./config/env');
 async function seed() {
+  const config = loadConfig();
+  if (config.mode === 'production' || process.env.SEED_ALLOW_EMPTY_DATABASE !== 'true') throw new Error('Seed bloqueado; solo base vacía de desarrollo/pruebas con autorización explícita');
+  const v = require('./utils/validation');
+  const password = v.password(process.env.SEED_PASSWORD);
+  const { sequelize, Usuario, Pedido } = require('./models');
   try {
-    await sequelize.authenticate();
-    await sequelize.sync({ force: true });
-
-    const passwordHash = await bcrypt.hash('clave123', 10);
-
-    const usuarios = await Usuario.unscoped().bulkCreate([
-      { nombre: 'Ana Torres', email: 'ana@ejemplo.cl', passwordHash },
-      { nombre: 'Juan Pérez', email: 'juan@ejemplo.cl', passwordHash },
-      { nombre: 'Camila Soto', email: 'camila@ejemplo.cl', passwordHash },
-    ], { returning: true });
-
-    await Pedido.bulkCreate([
-      { usuarioId: usuarios[0].id, producto: 'Teclado', cantidad: 1, total: 25990, estado: 'pagado' },
-      { usuarioId: usuarios[0].id, producto: 'Mouse', cantidad: 2, total: 19980, estado: 'pendiente' },
-      { usuarioId: usuarios[1].id, producto: 'Audífonos', cantidad: 1, total: 32990, estado: 'pagado' },
-    ]);
-
-    console.log('✅ Datos de prueba creados: 3 usuarios y 3 pedidos');
-  } catch (error) {
-    console.error('❌ Error al cargar datos:', error);
-    process.exitCode = 1;
-  } finally {
-    await sequelize.close();
-  }
+    const passwordHash = await require('bcryptjs').hash(password, 10);
+    await sequelize.transaction(async transaction => {
+      await sequelize.query('LOCK TABLE usuarios, pedidos IN ACCESS EXCLUSIVE MODE', { transaction });
+      if (await Usuario.count({ transaction }) || await Pedido.count({ transaction })) throw new Error('Seed bloqueado: existen datos');
+      const usuario = await Usuario.unscoped().create({ nombre: 'Cuenta Demo', email: 'demo@example.invalid', passwordHash }, { transaction });
+      await Pedido.create({ usuarioId: usuario.id, producto: 'Producto Demo', cantidad: 1, total: '10.00', estado: 'pendiente' }, { transaction });
+    });
+    console.log('Datos sintéticos creados');
+  } finally { await sequelize.close(); }
 }
-
-seed();
+if (require.main === module) seed().catch(() => { console.error('Seed no realizado. Revisa las condiciones documentadas.'); process.exitCode = 1; });
+module.exports = { seed };

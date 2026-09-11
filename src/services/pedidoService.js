@@ -1,53 +1,33 @@
-const { Pedido, Usuario } = require('../models');
+const { Pedido } = require('../models');
 const AppError = require('../utils/AppError');
-
-async function listar() {
-  return Pedido.findAll({
-    include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nombre', 'email'] }],
-    order: [['id', 'ASC']],
-  });
+const v = require('../utils/validation');
+async function listar(actorId, query) {
+  const { limit, offset } = v.pagination(query);
+  return Pedido.findAll({ where: { usuarioId: v.id(actorId) }, limit, offset, order: [['id', 'ASC']] });
 }
-
-async function obtenerPorId(id) {
-  const pedido = await Pedido.findByPk(id, {
-    include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nombre', 'email'] }],
-  });
+async function obtenerPorId(id, actorId) {
+  const pedido = await Pedido.findOne({ where: { id: v.id(id), usuarioId: v.id(actorId) } });
   if (!pedido) throw new AppError('Pedido no encontrado', 404);
   return pedido;
 }
-
-async function crear(datos) {
-  const { usuarioId, producto, cantidad, total, estado } = datos;
-  if (!usuarioId || !producto || cantidad === undefined || total === undefined) {
-    throw new AppError('usuarioId producto cantidad y total son obligatorios', 400);
-  }
-
-  const usuario = await Usuario.findByPk(usuarioId);
-  if (!usuario) throw new AppError('El usuario asociado no existe', 400);
-
-  return Pedido.create({ usuarioId, producto, cantidad, total, estado });
+function fields(datos, actorId, partial) {
+  const result = v.pedido(datos, partial);
+  if (result.usuarioId !== undefined && result.usuarioId !== actorId) throw new AppError('No puedes asignar pedidos a otro usuario', 403);
+  delete result.usuarioId;
+  return result;
 }
-
-async function actualizar(id, datos) {
-  const pedido = await Pedido.findByPk(id);
-  if (!pedido) throw new AppError('Pedido no encontrado', 404);
-
-  const permitidos = ['producto', 'cantidad', 'total', 'estado'];
-  const cambios = {};
-  for (const campo of permitidos) {
-    if (datos[campo] !== undefined) cambios[campo] = datos[campo];
-  }
-
-  if (Object.keys(cambios).length === 0) throw new AppError('No hay campos válidos para actualizar', 400);
-  await pedido.update(cambios);
+async function crear(datos, actorId) {
+  return Pedido.create({ ...fields(datos, actorId, false), usuarioId: v.id(actorId) });
+}
+async function actualizar(id, datos, actorId) {
+  const changes = fields(datos, actorId, true);
+  const pedido = await obtenerPorId(id, actorId);
+  await pedido.update(changes);
   return pedido;
 }
-
-async function eliminar(id) {
-  const pedido = await Pedido.findByPk(id);
-  if (!pedido) throw new AppError('Pedido no encontrado', 404);
+async function eliminar(id, actorId) {
+  const pedido = await obtenerPorId(id, actorId);
   await pedido.destroy();
   return { id: Number(id) };
 }
-
 module.exports = { listar, obtenerPorId, crear, actualizar, eliminar };

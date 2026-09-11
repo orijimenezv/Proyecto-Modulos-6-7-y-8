@@ -1,6 +1,4 @@
 const router = require('express').Router();
-const authController = require('../controllers/authController');
-
-router.post('/login', authController.login);
-
+const { loadConfig } = require('../config/env');
+router.post('/login', require('../middlewares/rateLimit')({ limit: loadConfig().loginLimit }), require('../controllers/authController').login);
 module.exports = router;

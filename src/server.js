@@ -1,25 +1,23 @@
-require('dotenv').config();
+const { loadConfig } = require('./config/env');
 const app = require('./app');
 const { sequelize } = require('./models');
-
-const PORT = Number(process.env.PORT || 3000);
-
 async function iniciar() {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Conexión a PostgreSQL establecida correctamente');
-
-    // Crea/actualiza tablas sin borrarlas.
-    await sequelize.sync({ alter: false });
-    console.log('✅ Modelos sincronizados');
-
-    app.listen(PORT, () => {
-      console.log(`✅ Servidor ejecutándose en http://localhost:${PORT}`);
+  await sequelize.authenticate();
+  // El esquema se administra exclusivamente mediante migraciones autorizadas.
+  const server = await new Promise((resolve, reject) => {
+    const listener = app.listen(loadConfig().port, () => {
+      listener.removeListener('error', reject);
+      console.log('Servidor HTTP iniciado');
+      resolve(listener);
     });
-  } catch (error) {
-    console.error('❌ Error al iniciar la aplicación:', error.message);
-    process.exit(1);
-  }
+    listener.once('error', reject);
+  });
+  const shutdown = () => {
+    server.close(() => sequelize.close().catch(() => { process.exitCode = 1; }));
+    server.closeIdleConnections?.();
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+  return server;
 }
-
-iniciar();
+module.exports = { iniciar };

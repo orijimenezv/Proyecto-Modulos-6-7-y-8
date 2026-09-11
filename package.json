@@ -1,13 +1,15 @@
 {
   "name": "proyecto-modulo7-node-express",
   "version": "1.0.0",
-  "description": "Proyecto Módulo 7 - Acceso a datos en aplicaciones Node.js con Express, PostgreSQL y Sequelize",
+  "description": "API de usuarios y pedidos con autorización por propietario, PostgreSQL, Sequelize, JWT y Multer",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
     "seed": "node src/seed.js",
-    "check": "node --check index.js && node --check src/server.js && node --check src/app.js"
+    "check": "node scripts/check.js",
+    "test": "node --test test/*.test.js",
+    "db:migrate": "node scripts/migrate.js"
   },
   "engines": {
     "node": ">=18"

@@ -1,5 +1,11 @@
 node_modules/
 .env
-logs/*.log
+.env.*
+!.env.example
+logs/
 *.log
+.data/
+public/uploads/*
+!public/uploads/.gitkeep
+coverage/
 .DS_Store
