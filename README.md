@@ -71,8 +71,8 @@ La API local escucha el `PORT` configurado; el ejemplo utiliza 3000. `GET /healt
 | `NODE_ENV` | `development`, `test` o `production` |
 | `PORT` | Puerto local; el futuro adaptador de despliegue puede usar directamente la app exportada |
 | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Conexión por campos separados |
-| `DATABASE_URL` | Alternativa PostgreSQL; sin parámetros de consulta ni fragmentos |
-| `DB_SSL` | `true` exige TLS con verificación de certificado; obligatorio en producción |
+| `DATABASE_URL` | Alternativa PostgreSQL; admite `sslmode=require/verify-full` y `connect_timeout=1..60`; sin fragmentos |
+| `DB_SSL` | `true` exige TLS verificado; producción exige esto o un `sslmode` seguro. `false` contradice un `sslmode` seguro y se rechaza |
 | `DB_SSL_CA` | CA PEM del proveedor, opcional; admite saltos de línea o secuencias literales `\n` |
 | `DB_POOL_MAX` | Máximo por instancia, 2 por defecto; permitido 1–10 |
 | `JWT_SECRET` | Clave explícita de firma, privada; mínimo 32 bytes |
@@ -83,6 +83,14 @@ La API local escucha el `PORT` configurado; el ejemplo utiliza 3000. `GET /healt
 | `STORAGE_DRIVER` | `local` en desarrollo/test; `disabled` obligatorio en producción por ahora |
 
 Los tests establecen configuración sintética, no leen `.env` y bloquean conexiones accidentales mediante el driver. Las variables de migración y seed están documentadas por separado; no deben habilitarse de forma rutinaria.
+
+### DATABASE_URL y TLS para PostgreSQL externo
+
+La URL se valida y convierte en campos separados antes de construir Sequelize. Solo se admiten protocolos `postgres:`/`postgresql:`, parámetros conocidos sin duplicados y una conexión completa. `connect_timeout` se convierte de segundos a `connectionTimeoutMillis` (por defecto 10 segundos). Nunca se registra la URL ni se incluye su contenido en errores.
+
+Decisión verificada en Sequelize 6.37.8 y pg 8.23.0: sus parsers de URI pueden sobrescribir `dialectOptions.ssl`. Por eso no se entrega la URI al ORM/driver. `require` y `verify-full` activan siempre `rejectUnauthorized: true`, conservando la verificación de hostname de Node; no se reproduce el modo de libpq que cifra sin verificar el certificado. Se rechazan modos débiles y otros overrides TLS. `DB_SSL_CA` permite configurar una CA de confianza explícita. Los campos `DB_*` siguen disponibles para desarrollo local.
+
+Una URL estilo Neon con `sslmode=require` es compatible. **`channel_binding=require` se rechaza explícitamente:** Sequelize no transmite `enableChannelBinding` y pg ofrece negociación opcional, sin garantizar la exigencia estricta de libpq. No se ignora ni se rebaja esa política. Si channel binding obligatorio es requisito del servicio, esta integración necesita una adaptación adicional antes de conectarse; no basta con quitar el parámetro. No se cambiaron dependencias ni se probó conectividad con Neon.
 
 Para desarrollo, los orígenes predeterminados son `http://localhost:5500` y `http://127.0.0.1:5500`. Para el futuro Pages habrá que añadir su origen real HTTPS. No incluir el nombre del repositorio en CORS. Producción exige una lista explícita y rechaza `*`.
 
@@ -252,6 +260,10 @@ Vercel (Express exportado, pendiente)
 Antes de desplegar: construir frontend/configuración pública de API, definir origen real, configurar secretos separados por entorno, verificar proxy y límite distribuido, elegir región/proveedor y pooling compatible, probar migraciones en una BD nueva autorizada, conectar almacenamiento de objetos y comprobar el flujo completo. No incluir credenciales en el frontend.
 
 No se añadió configuración de Vercel en esta fase. El contrato save/read permite evolucionar el almacenamiento sin reescribir los controllers. La plataforma elegida deberá verificarse para límites de payload, duración y conexiones.
+
+La [integración zero-config de Express en Vercel](https://vercel.com/docs/frameworks/backend/express) reconoce `src/app.js` con una exportación de Express, que este proyecto ya tiene. Se conserva `src/server.js` para arranque local y no se necesita añadir `vercel.json` para ese contrato. La detección y ejecución efectivas quedan pendientes de verificar en la plataforma; no se hizo despliegue.
+
+En Vercel deben definirse por entorno `DATABASE_URL` privada, `NODE_ENV=production`, `DB_SSL=true`, `JWT_SECRET` aleatorio, `CORS_ORIGINS` HTTPS explícito y `STORAGE_DRIVER=disabled`. Mantener un pool pequeño por instancia y evaluar el endpoint pooled del proveedor según concurrencia. Las migraciones requieren una operación separada autorizada. Los archivos privados seguirán respondiendo 503 hasta integrar almacenamiento persistente; los limitadores en memoria no son globales entre instancias. El esquema, TLS efectivo y flujo HTTP necesitan después pruebas en una base desechable autorizada.
 
 ## Contexto de aprendizaje
 
