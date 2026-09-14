@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Órbita: gestión personal de pedidos. Proyecto de portafolio Full Stack JavaScript.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://proyecto-modulos-6-7-8-api.vercel.app; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>Órbita · Mis pedidos</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <script defer src="./js/config.js"></script>
+  <script defer src="./js/api.js"></script>
+  <script defer src="./js/auth.js"></script>
+  <script defer src="./js/pedidos.js"></script>
+  <script defer src="./js/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Saltar al contenido</a>
+  <header class="topbar wrap">
+    <a class="brand" href="./index.html" aria-label="Órbita, inicio"><span class="brand-icon" aria-hidden="true">◉</span> órbita<span class="brand-dot">.</span></a>
+    <span class="project-tag">FULL STACK / JAVASCRIPT</span>
+    <button id="logout" class="button ghost" hidden>Cerrar sesión</button>
+  </header>
+  <main id="main" class="wrap">
+    <p id="notice" class="notice" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+    <section id="home" class="hero" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow"><span class="dot"></span> UN ESPACIO PARA TUS PEDIDOS</p>
+        <h1 id="hero-title" tabindex="-1">Todo en orden.<br><span>Todo en órbita.</span></h1>
+        <p class="lead">Menos vueltas, más claridad. Crea, organiza y sigue tus pedidos desde un espacio personal, simple y conectado.</p>
+        <div class="actions"><button class="button primary" data-view="register">Crear mi cuenta <span aria-hidden="true">↗</span></button><button class="button ghost" data-view="login">Iniciar sesión</button></div>
+        <p class="subtle">Tu cuenta. Tus pedidos. Una vista clara.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="preview"><div class="preview-heading"><span>MI ESPACIO</span><span>•••</span></div><h2>De pendiente<br>a resuelto.</h2><div class="sample"><span class="sample-icon">↗</span><div>Tu próximo pedido<small>Todo empieza con una idea</small></div><span class="sample-check">✓</span></div><div class="sample-line"></div><div class="sample-line short"></div><div class="preview-bottom"><span class="badge pagado">Organizado</span><span>01 — 03</span></div></div>
+        <span class="floating-label">Un flujo más simple ✦</span>
+      </div>
+      <div class="features"><article><span>01 / CREA</span><h3>Del detalle al pedido</h3><p>Producto, cantidad e importe, sin pasos de más.</p></article><article><span>02 / ORGANIZA</span><h3>Cada estado, a la vista</h3><p>Distingue lo pendiente, pagado y cancelado.</p></article><article><span>03 / CONTROLA</span><h3>Un espacio personal</h3><p>Accede a tus pedidos y actualízalos cuando lo necesites.</p></article></div>
+    </section>
+
+    <section id="access" class="access" hidden aria-labelledby="access-title">
+      <div class="access-copy"><p class="eyebrow">TU ESPACIO PERSONAL</p><h1>Un poco de orden.<br><span>Muchas posibilidades.</span></h1><p class="lead">Tus pedidos te esperan. Entra y continúa donde lo dejaste.</p><button class="text-button" data-view="home">← Volver al inicio</button></div>
+      <div class="panel auth-panel"><h2 id="access-title" tabindex="-1">Iniciar sesión</h2><p id="access-description" class="muted">Qué bueno tenerte de vuelta.</p>
+        <form id="login-form"><fieldset><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="username" maxlength="120" required><label for="login-password">Contraseña</label><input id="login-password" name="password" type="password" autocomplete="current-password" required><button class="button primary full" type="submit">Entrar a mi espacio ↗</button><p class="muted">¿Primera vez aquí? <button class="text-button" type="button" data-view="register">Crear una cuenta</button></p></fieldset></form>
+        <form id="register-form" hidden><fieldset><label for="register-name">Nombre</label><input id="register-name" name="nombre" autocomplete="name" minlength="2" maxlength="80" required><label for="register-email">Email</label><input id="register-email" name="email" type="email" autocomplete="email" maxlength="120" required><label for="register-password">Contraseña</label><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" aria-describedby="password-help" required><small id="password-help">Al menos 8 caracteres y como máximo 72 bytes.</small><button class="button primary full" type="submit">Crear cuenta ↗</button><p class="muted">¿Ya tienes cuenta? <button class="text-button" type="button" data-view="login">Iniciar sesión</button></p></fieldset></form>
+      </div>
+    </section>
+
+    <section id="dashboard" hidden aria-labelledby="dashboard-title">
+      <div class="dashboard-heading"><div><p class="eyebrow">PANEL PERSONAL</p><h1 id="dashboard-title" tabindex="-1">Hola, <span id="user-name">bienvenido</span>.</h1><p class="muted">Dale espacio a lo que sigue. Nosotros ponemos el orden.</p></div><button id="new-order" class="button primary">＋ Nuevo pedido</button></div>
+      <div class="workspace"><div class="workspace-heading"><div><h2>Mis pedidos</h2><p id="page-description" class="muted">Tus pedidos, en un solo lugar.</p></div><button id="refresh" class="button ghost">↻ Actualizar</button></div>
+        <p id="empty" class="empty" hidden>Aún no hay pedidos aquí. Crea uno con «Nuevo pedido» para comenzar.</p>
+        <div id="orders" class="orders" aria-label="Listado de pedidos"></div>
+        <nav class="pagination" aria-label="Páginas de pedidos"><button id="previous" class="button ghost">← Anterior</button><span id="page-number">Página 1</span><button id="next" class="button ghost">Siguiente →</button></nav>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap footer"><span>Órbita · Proyecto Módulos 6, 7 y 8</span><span>Diseñado para simplificar. Construido con JavaScript.</span></footer>
+  <dialog id="order-dialog" aria-labelledby="order-title"><form id="order-form"><fieldset><div class="dialog-heading"><h2 id="order-title">Nuevo pedido</h2><button class="icon-button" id="close-order" type="button" aria-label="Cerrar formulario">×</button></div><p class="muted">Los pequeños detalles hacen el orden.</p><label for="product">Producto</label><input id="product" name="producto" maxlength="120" required><div class="form-row"><div><label for="quantity">Cantidad</label><input id="quantity" name="cantidad" type="number" min="1" max="2147483647" step="1" required></div><div><label for="total">Importe total</label><input id="total" name="total" type="number" min="0" max="9999999999.99" step="0.01" aria-describedby="total-help" required></div></div><small id="total-help">Importe completo del pedido, con hasta dos decimales. Sin moneda definida.</small><label for="state">Estado</label><select id="state" name="estado"><option value="pendiente">Pendiente</option><option value="pagado">Pagado</option><option value="cancelado">Cancelado</option></select><p id="order-error" role="alert" class="form-error"></p><button class="button primary full" type="submit">Guardar pedido</button></fieldset></form></dialog>
+  <dialog id="delete-dialog" aria-labelledby="delete-title"><form id="delete-form"><fieldset><h2 id="delete-title">¿Eliminar pedido?</h2><p id="delete-description"></p><p class="muted">Esta acción no se puede deshacer.</p><p id="delete-error" class="form-error" role="alert"></p><div class="actions"><button id="cancel-delete" class="button ghost" type="button">Conservar pedido</button><button class="button danger" type="submit">Sí, eliminar</button></div></fieldset></form></dialog>
+  <noscript>Necesitas habilitar JavaScript para usar el registro, iniciar sesión y gestionar pedidos.</noscript>
+</body>
+</html>
