@@ -70,6 +70,8 @@ test('Sequelize y pg conservan TLS explícito sin recibir connectionString ni co
   delete require.cache[databasePath];
   try {
     const sequelize = require(databasePath);
+    assert.equal(sequelize.options.dialectModule, require('pg'));
+    assert.equal(sequelize.connectionManager.lib, require('pg'));
     const options = sequelize.options.dialectOptions;
     const client = new (require('pg').Client)({ host: sequelize.config.host, ...options });
     assert.equal(sequelize.config.database, 'demo_db');
