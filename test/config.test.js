@@ -14,7 +14,7 @@ test('producción exige TLS, CORS HTTPS y almacenamiento deshabilitado', () => {
 });
 test('DATABASE_URL válida y TLS centralizado sin overrides',()=>{
   const url='postgresql://synthetic:synthetic@localhost:5432/test';
-  assert.equal(loadConfig({...base,DATABASE_URL:url}).database.url,url);
+  assert.equal(loadConfig({...base,DATABASE_URL:url}).database.name,'test');
   assert.throws(()=>loadConfig({...base,DATABASE_URL:url+'?sslmode=no-verify'}));
   assert.throws(()=>loadConfig({...base,DATABASE_URL:'https://example.invalid'}));
   assert.equal(loadConfig({...base,DB_SSL:'true',DB_SSL_CA:'line1'+String.fromCharCode(92)+'nline2'}).database.ssl.ca,'line1'+String.fromCharCode(10)+'line2');
