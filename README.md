@@ -2,10 +2,10 @@
 
 Backend de aprendizaje evolucionado hacia una API con autorización por propietario, persistencia relacional y pruebas automatizadas. Permite registrar una cuenta, autenticarse y gestionar sus pedidos y archivos privados.
 
-**Estado:** fase 1 de mejora del backend. No hay frontend funcional ni despliegue público.
+**Estado:** backend en producción y frontend estático Órbita implementado; publicación del frontend en GitHub Pages pendiente.
 
-- API pública: **pendiente**.
-- Frontend: **pendiente**.
+- API pública: https://proyecto-modulos-6-7-8-api.vercel.app
+- Frontend: código en `frontend/`, todavía sin publicar.
 - No hay pagos, inventario ni catálogo: producto y total son datos introducidos por el usuario.
 
 ## Tecnologías reales
@@ -51,6 +51,24 @@ public/         HTML informativo legado; uploads NO se sirven públicamente
 ```
 
 ## Instalación local
+
+### Frontend Órbita
+
+Aplicación HTML/CSS/JavaScript vanilla, sin build ni dependencias de interfaz. Incluye registro, login, sesión en `sessionStorage`, perfil y CRUD de pedidos paginado. La sesión se borra al cerrar sesión o recibir 401. Los importes se muestran sin símbolo monetario porque la API no define moneda.
+
+Después de `npm ci`, servir **solo** la carpeta `frontend/` desde la raíz del repositorio (no se importa ni inicia el backend):
+
+```sh
+node -e "const express=require('express');const app=express();app.use(express.static('frontend'));app.listen(5500,'127.0.0.1',()=>console.log('http://127.0.0.1:5500'));"
+```
+
+Abrir `http://127.0.0.1:5500`. No usar `file://`. La URL pública de la API está centralizada en `frontend/js/config.js`; la política `connect-src` de `frontend/index.html` también debe coincidir si se cambia el destino. Son configuraciones públicas: nunca poner secretos en estos archivos. Todos los recursos usan rutas relativas para funcionar bajo el subdirectorio de GitHub Pages.
+
+**CORS verificado:** la API responde 204 al preflight del origen `https://orijimenezv.github.io`, pero responde 403 para `http://127.0.0.1:5500`. La portada funciona localmente; el flujo real desde ese origen necesita una autorización CORS independiente o un entorno de pruebas permitido. Esta fase no cambió variables ni CORS. Las comprobaciones de interfaz usan respuestas simuladas y no escriben en producción. Registrar o modificar pedidos desde la interfaz contra la API real sí escribe datos.
+
+Arquitectura: **GitHub Pages (frontend estático) → Vercel (API Express) → Neon (PostgreSQL)**. El navegador solo llama a la API mediante `fetch`; nunca se conecta a PostgreSQL. El frontend se publica por separado; agregar esta carpeta no configura GitHub Pages ni modifica rutas del backend.
+
+### Backend
 
 1. Clonar el repositorio y entrar en su directorio.
 2. Instalar dependencias con `npm ci`.
@@ -218,7 +236,7 @@ En producción `STORAGE_DRIVER=disabled`: upload y descarga privada responden 50
 |---|---|
 | `npm start` | Comprueba conexión e inicia HTTP; no crea tablas |
 | `npm run dev` | Lo mismo con nodemon |
-| `npm run check` | Sintaxis de todos los JS propios en src/scripts/test e index |
+| `npm run check` | Sintaxis de todos los JS propios en src/scripts/test/frontend/js e index |
 | `npm test` | Tests automatizados aislados |
 | `npm run db:migrate` | Solo base nueva/vacía explícitamente autorizada; ver migrations/README.md |
 | `npm run seed` | Datos sintéticos opcionales; protegido, no forma parte del arranque |
