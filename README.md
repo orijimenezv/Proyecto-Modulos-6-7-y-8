@@ -1,20 +1,82 @@
-# API de usuarios y pedidos · Portafolio JavaScript
+# Órbita · Full Stack JavaScript
 
-Backend de aprendizaje evolucionado hacia una API con autorización por propietario, persistencia relacional y pruebas automatizadas. Permite registrar una cuenta, autenticarse y gestionar sus pedidos y archivos privados.
+Aplicación web para organizar pedidos personales, con una interfaz responsive, autenticación JWT y persistencia relacional. Proyecto de portafolio desarrollado desde ejercicios de los módulos 6, 7 y 8 hasta una aplicación desplegada de punta a punta, con autorización por propietario y pruebas automatizadas.
 
-**Estado:** backend en producción y frontend estático Órbita implementado; publicación del frontend en GitHub Pages pendiente.
+[🌐 Demo](https://orijimenezv.github.io/Proyecto-Modulos-6-7-y-8/) · [⚙️ API](https://proyecto-modulos-6-7-8-api.vercel.app) · [💻 Código](https://github.com/orijimenezv/Proyecto-Modulos-6-7-y-8)
 
-- API pública: https://proyecto-modulos-6-7-8-api.vercel.app
-- Frontend: código en `frontend/`, todavía sin publicar.
-- No hay pagos, inventario ni catálogo: producto y total son datos introducidos por el usuario.
+**Estado: EN PRODUCCIÓN.** Registro, login JWT, rutas protegidas y CRUD completo de pedidos probados manualmente en producción. **58 pruebas automatizadas aprobadas**, ejecutadas con datos y conexiones simulados.
 
-## Tecnologías reales
+## Proyecto en producción
+
+| Componente | Plataforma |
+|---|---|
+| Frontend estático Órbita | GitHub Pages |
+| API Node.js / Express | Vercel |
+| Base de datos PostgreSQL | Neon |
+
+GitHub Actions publica exclusivamente `frontend/` en Pages, sin build. El navegador se comunica con la API mediante HTTPS; solo el backend accede a PostgreSQL.
+
+Para explorar la aplicación, crea tu propia cuenta desde la demo. Las operaciones de registro y pedidos guardan datos reales. Los estados pendiente, pagado y cancelado son etiquetas de organización: la aplicación no procesa pagos. Producto e importe son datos introducidos por el usuario; no hay catálogo ni inventario.
+
+## Funcionalidades
+
+- Registro de usuarios e inicio de sesión con JWT Bearer.
+- Sesión de navegador en `sessionStorage`, cierre de sesión y retorno al login ante un 401.
+- Dashboard con saludo al usuario y vista de sus pedidos.
+- Crear, listar, editar y eliminar pedidos, con confirmación antes del borrado.
+- Paginación y actualización del listado.
+- Recursos aislados por usuario mediante autorización por propietario en la API.
+- Validación de formularios, cantidades, importes y estados.
+- Manejo de errores, mensajes de carga y controles bloqueados durante las solicitudes.
+- Diseño responsive, HTML semántico, labels y foco visible.
+
+## Stack tecnológico
+
+| Área | Tecnologías |
+|---|---|
+| Frontend | HTML5, CSS3, JavaScript vanilla, Fetch API, sessionStorage; sin framework ni build |
+| Backend | Node.js, Express, Sequelize, JWT (`jsonwebtoken`), bcryptjs, Multer |
+| Base de datos | PostgreSQL alojado en Neon; driver `pg` |
+| Deploy | GitHub Pages, GitHub Actions y Vercel |
+| Testing | `node:test`, `node:assert/strict` y pruebas HTTP contra Express |
+
+Multer forma parte del backend para archivos privados en desarrollo; el almacenamiento de archivos está deshabilitado en producción y no forma parte del flujo del frontend.
+
+## Arquitectura
+
+```mermaid
+flowchart TD
+  U[Usuario] --> P[GitHub Pages · Frontend Órbita]
+  P -->|HTTPS / Fetch| A[Vercel / Express API]
+  A --> S[Sequelize]
+  S -->|TLS| D[Neon PostgreSQL]
+```
+
+## Seguridad implementada
+
+- Contraseñas hasheadas con bcryptjs; no se devuelven hashes al cliente.
+- JWT con expiración y validación de firma, emisor y audiencia.
+- Autorización por propietario y consultas limitadas al usuario autenticado.
+- Validación de entradas y consultas SQL parametrizadas.
+- CORS con orígenes explícitos; el origen de GitHub Pages está autorizado.
+- Rate limiting por IP y proceso; todavía no es un límite distribuido entre instancias.
+- Secretos mediante variables de entorno del backend y TLS verificado hacia PostgreSQL.
+- JWT exclusivamente en `sessionStorage`, nunca en `localStorage`. Esto limita su persistencia, pero no lo protege de un posible XSS.
+- Datos de la API representados con `textContent`; errores HTTP sin detalles internos ni secretos.
+
+## Lo que aprendí
+
+Evolucioné ejercicios de los módulos hacia una aplicación completa, conectando una interfaz vanilla con una API y una base relacional. Aprendí a separar autenticación de autorización, aplicar propiedad de recursos, trabajar con transacciones y probar errores sin tocar datos reales. El despliegue me permitió resolver la integración de CORS, el driver PostgreSQL en Vercel, TLS y la publicación de archivos estáticos mediante GitHub Actions.
+
+## Documentación técnica
+
+### Dependencias y entorno
 
 JavaScript CommonJS, Node.js, Express 4, PostgreSQL, Sequelize 6, `pg`, `bcryptjs`, `jsonwebtoken`, Multer y dotenv. Nodemon para desarrollo. Pruebas con `node:test`, `assert` y HTTP mediante `fetch`; no se añadió un framework de tests externo.
 
 El lockfile fija las dependencias. `pg-hstore` sigue declarado por compatibilidad con el proyecto original, pero no hay campos HSTORE. Entorno verificado: Node 24.20.0 y npm 11.19.0. El paquete conserva su declaración Node >=18; se recomienda utilizar el entorno verificado.
 
-## Arquitectura
+### Organización interna
 
 ```text
 Cliente HTTP → CORS → rutas → autenticación → autorización
@@ -33,6 +95,8 @@ La validación de entradas ocurre antes de las consultas del recurso. La autenti
 `src/app.js` exporta Express sin abrir puerto ni sincronizar tablas. `src/server.js` administra el arranque local, comprueba conectividad y escucha `PORT`; `index.js` lo invoca. Los logs usan consola y un identificador de solicitud, sin cuerpos, tokens, contraseñas ni parámetros de consulta.
 
 ```text
+frontend/       HTML, CSS y módulos JavaScript del cliente
+.github/workflows/pages.yml  Publicación de frontend/ en GitHub Pages
 src/
   app.js, server.js, seed.js
   config/        env.js y database.js
@@ -64,9 +128,9 @@ node -e "const express=require('express');const app=express();app.use(express.st
 
 Abrir `http://127.0.0.1:5500`. No usar `file://`. La URL pública de la API está centralizada en `frontend/js/config.js`; la política `connect-src` de `frontend/index.html` también debe coincidir si se cambia el destino. Son configuraciones públicas: nunca poner secretos en estos archivos. Todos los recursos usan rutas relativas para funcionar bajo el subdirectorio de GitHub Pages.
 
-**CORS verificado:** la API responde 204 al preflight del origen `https://orijimenezv.github.io`, pero responde 403 para `http://127.0.0.1:5500`. La portada funciona localmente; el flujo real desde ese origen necesita una autorización CORS independiente o un entorno de pruebas permitido. Esta fase no cambió variables ni CORS. Las comprobaciones de interfaz usan respuestas simuladas y no escriben en producción. Registrar o modificar pedidos desde la interfaz contra la API real sí escribe datos.
+**CORS verificado:** la API responde 204 al preflight del origen `https://orijimenezv.github.io`, pero responde 403 para `http://127.0.0.1:5500`. La portada funciona localmente; el flujo real desde ese origen necesita una autorización CORS independiente o un entorno de pruebas permitido. Las comprobaciones automatizadas de interfaz usan respuestas simuladas y no escriben en producción; el flujo real desde Pages también se probó manualmente. Registrar o modificar pedidos desde la interfaz contra la API real sí escribe datos.
 
-Arquitectura: **GitHub Pages (frontend estático) → Vercel (API Express) → Neon (PostgreSQL)**. El navegador solo llama a la API mediante `fetch`; nunca se conecta a PostgreSQL. El frontend se publica por separado; agregar esta carpeta no configura GitHub Pages ni modifica rutas del backend.
+Arquitectura: **GitHub Pages (frontend estático) → Vercel (API Express) → Neon (PostgreSQL)**. El navegador solo llama a la API mediante `fetch`; nunca se conecta a PostgreSQL. El workflow `.github/workflows/pages.yml` publica esta carpeta por separado, sin modificar las rutas del backend.
 
 ### Backend
 
@@ -80,14 +144,14 @@ Arquitectura: **GitHub Pages (frontend estático) → Vercel (API Express) → N
 
 La API local escucha el `PORT` configurado; el ejemplo utiliza 3000. `GET /health` informa del proceso, no del estado actual de PostgreSQL.
 
-**Si ya tienes la base del curso:** no ejecutes la migración inicial ni el seed sobre ella. Se necesita revisar sus restricciones y preparar una adopción específica. Esta fase no conecta ni modifica esa base.
+**Si ya tienes la base del curso:** no ejecutes la migración inicial ni el seed sobre ella. Se necesita revisar sus restricciones y preparar una adopción específica. La base histórica del curso requiere una revisión independiente del entorno de producción en Neon.
 
 ## Variables de entorno
 
 | Variable | Uso |
 |---|---|
 | `NODE_ENV` | `development`, `test` o `production` |
-| `PORT` | Puerto local; el futuro adaptador de despliegue puede usar directamente la app exportada |
+| `PORT` | Puerto del arranque local; Vercel utiliza la integración de Express |
 | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Conexión por campos separados |
 | `DATABASE_URL` | Alternativa PostgreSQL; admite `sslmode=require/verify-full` y `connect_timeout=1..60`; sin fragmentos |
 | `DB_SSL` | `true` exige TLS verificado; producción exige esto o un `sslmode` seguro. `false` contradice un `sslmode` seguro y se rechaza |
@@ -108,9 +172,9 @@ La URL se valida y convierte en campos separados antes de construir Sequelize. S
 
 Decisión verificada en Sequelize 6.37.8 y pg 8.23.0: sus parsers de URI pueden sobrescribir `dialectOptions.ssl`. Por eso no se entrega la URI al ORM/driver. `require` y `verify-full` activan siempre `rejectUnauthorized: true`, conservando la verificación de hostname de Node; no se reproduce el modo de libpq que cifra sin verificar el certificado. Se rechazan modos débiles y otros overrides TLS. `DB_SSL_CA` permite configurar una CA de confianza explícita. Los campos `DB_*` siguen disponibles para desarrollo local.
 
-Una URL estilo Neon con `sslmode=require` es compatible. **`channel_binding=require` se rechaza explícitamente:** Sequelize no transmite `enableChannelBinding` y pg ofrece negociación opcional, sin garantizar la exigencia estricta de libpq. No se ignora ni se rebaja esa política. Si channel binding obligatorio es requisito del servicio, esta integración necesita una adaptación adicional antes de conectarse; no basta con quitar el parámetro. No se cambiaron dependencias ni se probó conectividad con Neon.
+Una URL estilo Neon con `sslmode=require` es compatible. **`channel_binding=require` se rechaza explícitamente:** Sequelize no transmite `enableChannelBinding` y pg ofrece negociación opcional, sin garantizar la exigencia estricta de libpq. No se ignora ni se rebaja esa política. Si channel binding obligatorio es requisito del servicio, esta integración necesita una adaptación adicional antes de conectarse; no basta con quitar el parámetro. La conexión con Neon funciona en producción con la configuración admitida. Esta limitación de channel binding sigue vigente.
 
-Para desarrollo, los orígenes predeterminados son `http://localhost:5500` y `http://127.0.0.1:5500`. Para el futuro Pages habrá que añadir su origen real HTTPS. No incluir el nombre del repositorio en CORS. Producción exige una lista explícita y rechaza `*`.
+Para desarrollo, los orígenes predeterminados son `http://localhost:5500` y `http://127.0.0.1:5500`. En producción está autorizado `https://orijimenezv.github.io`. No incluir el nombre del repositorio en CORS. Producción exige una lista explícita y rechaza `*`.
 
 CORS permite GET, POST, PUT, DELETE y OPTIONS, con Content-Type y Authorization. Preflight responde 204 sin JWT. No se usan cookies ni se activa envío de credenciales cross-site. CORS no sustituye permisos ni impide solicitudes desde herramientas externas.
 
@@ -141,7 +205,7 @@ Se conserva SQL manual en `rawSqlService.js`, ejecutado con `sequelize.query` y 
 
 La creación conjunta de cuenta y primer pedido utiliza una transacción administrada: éxito implica COMMIT y cualquier error provoca ROLLBACK. El hash se calcula antes de abrir la transacción. La API ya no acepta `forzarError`; el rollback se prueba con fallos simulados. El borrado de cuenta y sus pedidos también es transaccional.
 
-No se ejecuta `sequelize.sync`, ni force, ni alter desde el arranque o seed. La migración inicial añade FK, CHECK e índice de propietario; esas restricciones **no se aplicaron** a la base antigua. El runner registra checksum, bloquea concurrencia y rechaza esquemas existentes que no tengan su historial esperado. No hay comandos destructivos de reversión.
+No se ejecuta `sequelize.sync`, ni force, ni alter desde el arranque o seed. La migración inicial añade FK, CHECK e índice de propietario; Neon cuenta con el esquema migrado. La adopción de una base antigua del curso debe revisarse por separado. El runner registra checksum, bloquea concurrencia y rechaza esquemas existentes que no tengan su historial esperado. No hay comandos destructivos de reversión.
 
 ## Autenticación y autorización
 
@@ -241,50 +305,42 @@ En producción `STORAGE_DRIVER=disabled`: upload y descarga privada responden 50
 | `npm run db:migrate` | Solo base nueva/vacía explícitamente autorizada; ver migrations/README.md |
 | `npm run seed` | Datos sintéticos opcionales; protegido, no forma parte del arranque |
 
-Las pruebas ejercitan HTTP real contra Express en puerto efímero, con modelos simulados. Cubren login, JWT, expiración/algoritmo, propiedad, CRUD, inputs, errores, CORS, archivos, límites, revocación y transacciones simuladas. También validan modelos reales en memoria y el runner de migración con una conexión simulada.
+**58 pruebas automatizadas aprobadas.** Las pruebas ejercitan HTTP real contra Express en puerto efímero, con modelos simulados. Cubren login, JWT, expiración/algoritmo, propiedad, CRUD, inputs, errores, CORS, archivos, límites, revocación y transacciones simuladas. También validan modelos reales en memoria, el runner de migración con una conexión simulada y el cliente frontend: Bearer, sessionStorage, cierre ante 401, validaciones y métodos del CRUD.
 
-No leen datos reales ni ejecutan DDL en PostgreSQL. Los archivos de prueba son sintéticos y se eliminan del directorio temporal. **No prueban atomicidad real, compatibilidad del esquema legado ni conectividad PostgreSQL**: esa integración queda pendiente de una base desechable autorizada.
+No leen datos reales ni ejecutan DDL en PostgreSQL. Los archivos de prueba son sintéticos y se eliminan del directorio temporal. **No prueban atomicidad real, compatibilidad del esquema legado ni conectividad PostgreSQL**: agregar pruebas automatizadas de integración sobre una base desechable sigue pendiente. Por separado, se verificaron manualmente en producción el registro, login JWT, rutas protegidas y CRUD completo de pedidos con Neon.
 
 ## Postman y evidencias
 
-Importar `postman/Modulo7.postman_collection.json`: es la colección actual de esta fase. Configurar variables locales `baseUrl`, `email` y `password` con una cuenta de demostración en una BD de pruebas. El login guarda token e ID en variables locales del entorno seleccionado. Nunca exportar ni compartir un entorno que contenga tokens o claves.
+Importar `postman/Modulo7.postman_collection.json`: es la colección de referencia de la API. Configurar variables locales `baseUrl`, `email` y `password` con una cuenta de demostración en una BD de pruebas. El login guarda token e ID en variables locales del entorno seleccionado. Nunca exportar ni compartir un entorno que contenga tokens o claves.
 
 Las carpetas YAML originales en `postman/collections/` se conservan únicamente como material histórico del curso: no son la colección actual y contienen ejemplos de autenticación/transacciones anteriores. No ejecutarlas como runner. La colección JSON sí refleja los endpoints actuales e incluye comprobaciones de estado.
 
 Postman es manual y puede escribir datos. No ejecutar toda la colección contra una base real. Las eliminaciones están marcadas al final y requieren revisión.
 
-Las capturas restantes son evidencia histórica, no demuestran el comportamiento de esta fase. Se retiraron dos capturas sensibles y los logs versionados; no se reescribió el historial. Las contraseñas de ejemplos son ficticias y no deben reutilizarse. No hay evidencia nueva de despliegue ni de BD real.
+Las capturas restantes son material histórico del curso, no evidencia del comportamiento actual. Se retiraron dos capturas sensibles y los logs versionados; las dos imágenes también se eliminaron del historial publicado. La credencial expuesta fue rotada. Los ejemplos de contraseñas son ficticios y no deben reutilizarse. La demo y el historial de GitHub Actions permiten consultar el despliegue actual; los flujos de producción fueron comprobados manualmente.
 
 ## Seguridad y decisiones pendientes
 
-- Credencial PostgreSQL expuesta en una captura histórica: **debe rotarse**, aunque la imagen ya no esté en el árbol actual. También revisar reutilización. Su valor no se reproduce.
-- El historial conserva la captura y otra con hashes: la limpieza histórica requiere aprobación separada.
 - La política es exclusivamente por propietario. No hay recuperación de contraseña, roles ni refresh tokens.
 - Los limitadores son en memoria por proceso; para varias instancias se necesita estado compartido y una política de proxy verificada. No se confía ciegamente en X-Forwarded-For.
 - Los listados están paginados. Las validaciones complementan, pero no sustituyen, restricciones reales de BD.
-- La auditoría npm anterior no pudo consultar el registro; no se afirma ausencia de vulnerabilidades. Esta fase no cambia versiones ni instala dependencias nuevas.
+- Las pruebas funcionales no sustituyen una auditoría de dependencias; no se afirma ausencia de vulnerabilidades.
 - No hay garantías de disponibilidad, backups o monitoreo de producción todavía.
 
-## Futura arquitectura de despliegue
+## Operación y despliegue
 
-```text
-GitHub Pages (frontend estático, pendiente)
-          ↓ HTTPS + JSON + JWT
-Vercel (Express exportado, pendiente)
-          ├── PostgreSQL externo con TLS y pooling
-          └── Almacenamiento de objetos autenticado (pendiente)
-```
+El frontend está publicado en GitHub Pages, la API en Vercel y PostgreSQL en Neon. Registro, login, rutas protegidas y CRUD de pedidos funcionan en producción.
 
-Antes de desplegar: construir frontend/configuración pública de API, definir origen real, configurar secretos separados por entorno, verificar proxy y límite distribuido, elegir región/proveedor y pooling compatible, probar migraciones en una BD nueva autorizada, conectar almacenamiento de objetos y comprobar el flujo completo. No incluir credenciales en el frontend.
+El workflow [pages.yml](.github/workflows/pages.yml) se ejecuta al hacer push a `main` cuando cambia `frontend/**` o el propio workflow, y permite ejecución manual limitada a `main`. Usa checkout, configure-pages, upload-pages-artifact y deploy-pages; sube únicamente `./frontend`, con `index.html` en la raíz del artifact. No necesita build ni una rama `gh-pages`. Configura permisos de lectura del contenido y publicación de Pages, concurrencia y el environment `github-pages` con la URL del deployment.
 
-No se añadió configuración de Vercel en esta fase. El contrato save/read permite evolucionar el almacenamiento sin reescribir los controllers. La plataforma elegida deberá verificarse para límites de payload, duración y conexiones.
+Vercel ejecuta la API Express. `src/app.js` exporta la aplicación y `src/server.js` conserva el arranque local. Sequelize recibe el módulo `pg` explícitamente mediante `dialectModule`, evitando depender de su carga dinámica en el bundle. No se necesita un archivo `vercel.json` en la configuración actual.
 
-La [integración zero-config de Express en Vercel](https://vercel.com/docs/frameworks/backend/express) reconoce `src/app.js` con una exportación de Express, que este proyecto ya tiene. Se conserva `src/server.js` para arranque local y no se necesita añadir `vercel.json` para ese contrato. La detección y ejecución efectivas quedan pendientes de verificar en la plataforma; no se hizo despliegue.
+Las variables privadas se configuran por entorno en el backend: conexión PostgreSQL, clave de firma JWT y orígenes CORS. Producción exige TLS, una lista explícita de orígenes HTTPS y `STORAGE_DRIVER=disabled`. Nunca deben copiarse secretos al frontend, al README ni al artifact de Pages.
 
-En Vercel deben definirse por entorno `DATABASE_URL` privada, `NODE_ENV=production`, `DB_SSL=true`, `JWT_SECRET` aleatorio, `CORS_ORIGINS` HTTPS explícito y `STORAGE_DRIVER=disabled`. Mantener un pool pequeño por instancia y evaluar el endpoint pooled del proveedor según concurrencia. Las migraciones requieren una operación separada autorizada. Los archivos privados seguirán respondiendo 503 hasta integrar almacenamiento persistente; los limitadores en memoria no son globales entre instancias. El esquema, TLS efectivo y flujo HTTP necesitan después pruebas en una base desechable autorizada.
+El pool es pequeño por instancia; su tamaño debe revisarse según concurrencia y límites del proveedor. Las migraciones son una operación separada del arranque y del despliegue estático. El almacenamiento persistente de archivos, los límites distribuidos y las pruebas automatizadas con una base desechable son mejoras pendientes, no capacidades actuales.
 
 ## Contexto de aprendizaje
 
-Proyecto originado en los módulos 6, 7 y 8 del curso Full Stack JavaScript. Esta fase conserva Express, PostgreSQL, Sequelize, SQL manual, bcrypt, JWT, Multer y la organización por capas, reforzando permisos y reproducibilidad.
+Proyecto originado en los módulos 6, 7 y 8 del curso Full Stack JavaScript. Integra frontend vanilla, Express, PostgreSQL, Sequelize, SQL manual, bcryptjs, JWT y una organización por capas, con énfasis en permisos, pruebas y despliegue reproducible.
 
 Autor: propietario del repositorio. Licencia: pendiente de elección; no se añadió una licencia por defecto.
